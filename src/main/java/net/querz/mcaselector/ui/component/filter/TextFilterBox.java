@@ -9,12 +9,14 @@ import net.querz.mcaselector.filter.Comparator;
 import net.querz.mcaselector.filter.Filter;
 import net.querz.mcaselector.filter.TextFilter;
 import net.querz.mcaselector.filter.filters.BiomeFilter;
+import net.querz.mcaselector.filter.filters.CompressionFilter;
 import net.querz.mcaselector.filter.filters.EntityFilter;
 import net.querz.mcaselector.filter.filters.PaletteFilter;
 import net.querz.mcaselector.filter.filters.StatusFilter;
 import net.querz.mcaselector.filter.filters.StructureFilter;
 import net.querz.mcaselector.text.Translation;
 import net.querz.mcaselector.ui.UIFactory;
+import net.querz.mcaselector.io.mca.CompressionType;
 import net.querz.mcaselector.version.mapping.registry.StructureRegistry;
 import net.querz.mcaselector.version.mapping.registry.BiomeRegistry;
 import net.querz.mcaselector.version.mapping.registry.EntityRegistry;
@@ -72,6 +74,10 @@ public class TextFilterBox extends FilterBox {
 		ComboBox<String> knownValues = new ComboBox<>();
 		if (filter instanceof BiomeFilter) {
 			knownValues.getItems().addAll(BiomeRegistry.getKnownNames());
+		} else if (filter instanceof CompressionFilter) {
+			for (CompressionType compressionType : CompressionType.values()) {
+				knownValues.getItems().add(compressionType.toString());
+			}
 		} else if (filter instanceof EntityFilter) {
 			knownValues.getItems().addAll(EntityRegistry.getKnownNames());
 		} else if (filter instanceof PaletteFilter) {
