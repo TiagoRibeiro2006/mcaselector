@@ -19,6 +19,8 @@ import net.querz.mcaselector.version.mapping.registry.BiomeRegistry;
 import net.querz.mcaselector.version.mapping.registry.EntityRegistry;
 import net.querz.mcaselector.version.mapping.registry.BlockRegistry;
 import net.querz.mcaselector.version.mapping.registry.StatusRegistry;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 public class TextFilterBox extends FilterBox {
@@ -84,6 +86,16 @@ public class TextFilterBox extends FilterBox {
 		knownValues.setEditable(true);
 		knownValues.setMaxWidth(Double.MAX_VALUE);
 		knownValues.getStyleClass().add("filter-known-value-combo-box");
+		List<String> allKnownValues = List.copyOf(knownValues.getItems());
+		knownValues.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
+			String prefix = newValue.toLowerCase(Locale.ROOT);
+			knownValues.getItems().setAll(allKnownValues.stream()
+					.filter(value -> matchesPrefix(value, prefix))
+					.toList());
+			if (!prefix.isEmpty()) {
+				knownValues.show();
+			}
+		});
 		knownValues.setOnAction(e -> {
 			String value = knownValues.getValue();
 			if (value == null) {
@@ -92,6 +104,11 @@ public class TextFilterBox extends FilterBox {
 			knownValues.getEditor().setText(value);
 		});
 		return knownValues;
+	}
+
+	private boolean matchesPrefix(String value, String prefix) {
+		String normalized = value.toLowerCase(Locale.ROOT);
+		return normalized.startsWith(prefix) || normalized.startsWith("minecraft:") && normalized.substring(10).startsWith(prefix);
 	}
 
 	private void onTextInput(Filter<?> filter, String newValue) {
