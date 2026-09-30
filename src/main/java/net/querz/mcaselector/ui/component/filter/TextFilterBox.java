@@ -1,5 +1,6 @@
 package net.querz.mcaselector.ui.component.filter;
 
+import javafx.application.Platform;
 import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
@@ -87,21 +88,34 @@ public class TextFilterBox extends FilterBox {
 		knownValues.setMaxWidth(Double.MAX_VALUE);
 		knownValues.getStyleClass().add("filter-known-value-combo-box");
 		List<String> allKnownValues = List.copyOf(knownValues.getItems());
+		boolean[] updatingItems = {false};
 		knownValues.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
-			String prefix = newValue.toLowerCase(Locale.ROOT);
-			knownValues.getItems().setAll(allKnownValues.stream()
-					.filter(value -> matchesPrefix(value, prefix))
-					.toList());
-			if (!prefix.isEmpty()) {
-				knownValues.show();
-			}
-		});
-		knownValues.setOnAction(e -> {
-			String value = knownValues.getValue();
-			if (value == null) {
+			if (updatingItems[0]) {
 				return;
 			}
-			knownValues.getEditor().setText(value);
+			// Let ComboBox finish committing a selection before filtering its items.
+			Platform.runLater(() -> {
+				if (!Objects.equals(newValue, knownValues.getEditor().getText())
+						|| Objects.equals(newValue, knownValues.getValue())) {
+					return;
+				}
+				String prefix = newValue == null ? "" : newValue.toLowerCase(Locale.ROOT);
+				int anchor = knownValues.getEditor().getAnchor();
+				int caret = knownValues.getEditor().getCaretPosition();
+				updatingItems[0] = true;
+				try {
+					knownValues.getItems().setAll(allKnownValues.stream()
+							.filter(value -> matchesPrefix(value, prefix))
+							.toList());
+					knownValues.getEditor().setText(newValue);
+					knownValues.getEditor().selectRange(anchor, caret);
+				} finally {
+					updatingItems[0] = false;
+				}
+				if (knownValues.getEditor().isFocused() && !prefix.isEmpty()) {
+					knownValues.show();
+				}
+			});
 		});
 		return knownValues;
 	}
