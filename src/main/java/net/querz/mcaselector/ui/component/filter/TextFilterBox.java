@@ -96,7 +96,7 @@ public class TextFilterBox extends FilterBox {
 			// Let ComboBox finish committing a selection before filtering its items.
 			Platform.runLater(() -> {
 				if (!Objects.equals(newValue, knownValues.getEditor().getText())
-						|| Objects.equals(newValue, knownValues.getValue())) {
+						|| Objects.equals(newValue, knownValues.getSelectionModel().getSelectedItem())) {
 					return;
 				}
 				String prefix = newValue == null ? "" : newValue.toLowerCase(Locale.ROOT);
