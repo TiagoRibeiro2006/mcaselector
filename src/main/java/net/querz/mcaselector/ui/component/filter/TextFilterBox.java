@@ -7,10 +7,12 @@ import javafx.scene.control.TextInputControl;
 import net.querz.mcaselector.filter.Comparator;
 import net.querz.mcaselector.filter.Filter;
 import net.querz.mcaselector.filter.TextFilter;
+import net.querz.mcaselector.filter.filters.BiomeFilter;
 import net.querz.mcaselector.filter.filters.StructureFilter;
 import net.querz.mcaselector.text.Translation;
 import net.querz.mcaselector.ui.UIFactory;
 import net.querz.mcaselector.version.mapping.registry.StructureRegistry;
+import net.querz.mcaselector.version.mapping.registry.BiomeRegistry;
 import java.util.Objects;
 
 public class TextFilterBox extends FilterBox {
@@ -24,7 +26,7 @@ public class TextFilterBox extends FilterBox {
 	public TextFilterBox(FilterBox parent, TextFilter<?> filter, boolean root) {
 		super(parent, filter, root);
 		getStyleClass().add("text-filter-box");
-		ComboBox<String> knownValuePicker = createStructurePicker(filter);
+		ComboBox<String> knownValuePicker = createKnownValuePicker(filter);
 		if (knownValuePicker == null) {
 			input = new javafx.scene.control.TextField();
 			setCenter(input);
@@ -57,13 +59,16 @@ public class TextFilterBox extends FilterBox {
 		input.setText(text);
 	}
 
-	private ComboBox<String> createStructurePicker(TextFilter<?> filter) {
-		if (!(filter instanceof StructureFilter)) {
+	private ComboBox<String> createKnownValuePicker(TextFilter<?> filter) {
+		ComboBox<String> knownValues = new ComboBox<>();
+		if (filter instanceof BiomeFilter) {
+			knownValues.getItems().addAll(BiomeRegistry.getKnownNames());
+		} else if (filter instanceof StructureFilter) {
+			StructureRegistry.forEachDisplayName((displayName, structure) -> knownValues.getItems().add(structure.id()));
+		} else {
 			return null;
 		}
 
-		ComboBox<String> knownValues = new ComboBox<>();
-		StructureRegistry.forEachDisplayName((displayName, structure) -> knownValues.getItems().add(structure.id()));
 		knownValues.setEditable(true);
 		knownValues.setMaxWidth(Double.MAX_VALUE);
 		knownValues.getStyleClass().add("filter-known-value-combo-box");
