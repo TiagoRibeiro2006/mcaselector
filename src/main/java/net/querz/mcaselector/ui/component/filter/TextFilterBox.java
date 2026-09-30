@@ -9,12 +9,14 @@ import net.querz.mcaselector.filter.Filter;
 import net.querz.mcaselector.filter.TextFilter;
 import net.querz.mcaselector.filter.filters.BiomeFilter;
 import net.querz.mcaselector.filter.filters.EntityFilter;
+import net.querz.mcaselector.filter.filters.PaletteFilter;
 import net.querz.mcaselector.filter.filters.StructureFilter;
 import net.querz.mcaselector.text.Translation;
 import net.querz.mcaselector.ui.UIFactory;
 import net.querz.mcaselector.version.mapping.registry.StructureRegistry;
 import net.querz.mcaselector.version.mapping.registry.BiomeRegistry;
 import net.querz.mcaselector.version.mapping.registry.EntityRegistry;
+import net.querz.mcaselector.version.mapping.registry.BlockRegistry;
 import java.util.Objects;
 
 public class TextFilterBox extends FilterBox {
@@ -67,6 +69,8 @@ public class TextFilterBox extends FilterBox {
 			knownValues.getItems().addAll(BiomeRegistry.getKnownNames());
 		} else if (filter instanceof EntityFilter) {
 			knownValues.getItems().addAll(EntityRegistry.getKnownNames());
+		} else if (filter instanceof PaletteFilter) {
+			knownValues.getItems().addAll(BlockRegistry.getKnownNames());
 		} else if (filter instanceof StructureFilter) {
 			StructureRegistry.forEachDisplayName((displayName, structure) -> knownValues.getItems().add(structure.id()));
 		} else {
