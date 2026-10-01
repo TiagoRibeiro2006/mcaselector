@@ -14,6 +14,7 @@ import net.querz.mcaselector.filter.Filter;
 import net.querz.mcaselector.filter.TextFilter;
 import net.querz.mcaselector.text.Translation;
 import net.querz.mcaselector.ui.UIFactory;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -106,7 +107,7 @@ public class TextFilterBox extends FilterBox {
 				}
 				updatingItems[0] = true;
 				try {
-					knownValues.getItems().setAll(allKnownValues);
+					knownValues.getItems().setAll(getSuggestions(allKnownValues, completed));
 					knownValues.getEditor().setText(completed);
 					knownValues.getEditor().positionCaret(completed.length());
 				} finally {
@@ -125,7 +126,6 @@ public class TextFilterBox extends FilterBox {
 						|| Objects.equals(newValue, knownValues.getSelectionModel().getSelectedItem())) {
 					return;
 				}
-				String prefix = newValue == null ? "" : newValue.substring(newValue.lastIndexOf(',') + 1).trim().toLowerCase(Locale.ROOT);
 				int anchor = knownValues.getEditor().getAnchor();
 				int caret = knownValues.getEditor().getCaretPosition();
 				updatingItems[0] = true;
@@ -133,9 +133,7 @@ public class TextFilterBox extends FilterBox {
 					if (!knownValues.getSelectionModel().isEmpty()) {
 						knownValues.getSelectionModel().clearSelection();
 					}
-					knownValues.getItems().setAll(allKnownValues.stream()
-							.filter(value -> matchesPrefix(value, prefix))
-							.toList());
+					knownValues.getItems().setAll(getSuggestions(allKnownValues, newValue));
 					knownValues.getEditor().setText(newValue);
 					knownValues.getEditor().selectRange(anchor, caret);
 				} finally {
@@ -149,6 +147,18 @@ public class TextFilterBox extends FilterBox {
 			});
 		});
 		return knownValues;
+	}
+
+	private List<String> getSuggestions(List<String> values, String text) {
+		String normalized = text == null ? "" : text.toLowerCase(Locale.ROOT);
+		String prefix = normalized.substring(normalized.lastIndexOf(',') + 1).trim();
+		List<String> enteredValues = Arrays.stream(normalized.split(","))
+				.map(String::trim)
+				.toList();
+		return values.stream()
+				.filter(value -> matchesPrefix(value, prefix))
+				.filter(value -> !enteredValues.contains(value.toLowerCase(Locale.ROOT)))
+				.toList();
 	}
 
 	private boolean matchesPrefix(String value, String prefix) {
