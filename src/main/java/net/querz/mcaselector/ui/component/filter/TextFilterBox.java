@@ -77,18 +77,13 @@ public class TextFilterBox extends FilterBox {
 		knownValues.skinProperty().addListener((observable, oldSkin, skin) -> {
 			if (skin instanceof ComboBoxListViewSkin<?> comboSkin) {
 				((Region) comboSkin.getPopupContent()).setPrefHeight(200);
+				comboSkin.getPopupContent().addEventFilter(KeyEvent.ANY,
+						event -> handleSpace(event, knownValues.getEditor()));
 			}
 		});
-		knownValues.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-			if (event.getCode() == KeyCode.SPACE && knownValues.getEditor().isFocused()) {
-				event.consume();
-			}
-		});
-		knownValues.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
-			if (event.getCode() == KeyCode.SPACE && knownValues.getEditor().isFocused()) {
-				event.consume();
-			}
-		});
+		knownValues.addEventFilter(KeyEvent.KEY_PRESSED, event -> handleSpace(event, knownValues.getEditor()));
+		knownValues.addEventFilter(KeyEvent.KEY_RELEASED, event -> handleSpace(event, knownValues.getEditor()));
+		knownValues.getEditor().addEventFilter(KeyEvent.KEY_TYPED, event -> handleSpace(event, knownValues.getEditor()));
 		List<String> allKnownValues = List.copyOf(knownValues.getItems());
 		boolean[] updatingItems = {false};
 		knownValues.valueProperty().addListener((observable, oldValue, selectedValue) -> {
@@ -147,6 +142,17 @@ public class TextFilterBox extends FilterBox {
 			});
 		});
 		return knownValues;
+	}
+
+	private void handleSpace(KeyEvent event, TextInputControl editor) {
+		if (event.getEventType() == KeyEvent.KEY_TYPED && " ".equals(event.getCharacter())) {
+			if (!event.isControlDown() && !event.isAltDown() && !event.isMetaDown()) {
+				editor.replaceSelection(" ");
+			}
+			event.consume();
+		} else if (event.getCode() == KeyCode.SPACE) {
+			event.consume();
+		}
 	}
 
 	private List<String> getSuggestions(List<String> values, String text) {
