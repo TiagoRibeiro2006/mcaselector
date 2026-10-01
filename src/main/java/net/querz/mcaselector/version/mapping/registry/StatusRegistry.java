@@ -34,7 +34,7 @@ public final class StatusRegistry {
 
 	public static List<String> getKnownNames() {
 		return valid.keySet().stream()
-				.filter(name -> !name.startsWith("minecraft:"))
+				.filter(name -> name.startsWith("minecraft:"))
 				.sorted(Comparator.naturalOrder())
 				.toList();
 	}

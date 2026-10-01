@@ -5,6 +5,10 @@ import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.control.skin.ComboBoxListViewSkin;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Region;
 import net.querz.mcaselector.filter.Comparator;
 import net.querz.mcaselector.filter.Filter;
 import net.querz.mcaselector.filter.TextFilter;
@@ -69,8 +73,48 @@ public class TextFilterBox extends FilterBox {
 		knownValues.setEditable(true);
 		knownValues.setMaxWidth(Double.MAX_VALUE);
 		knownValues.getStyleClass().add("filter-known-value-combo-box");
+		knownValues.skinProperty().addListener((observable, oldSkin, skin) -> {
+			if (skin instanceof ComboBoxListViewSkin<?> comboSkin) {
+				((Region) comboSkin.getPopupContent()).setPrefHeight(200);
+			}
+		});
+		knownValues.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+			if (event.getCode() == KeyCode.SPACE && knownValues.getEditor().isFocused()) {
+				event.consume();
+			}
+		});
+		knownValues.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
+			if (event.getCode() == KeyCode.SPACE && knownValues.getEditor().isFocused()) {
+				event.consume();
+			}
+		});
 		List<String> allKnownValues = List.copyOf(knownValues.getItems());
 		boolean[] updatingItems = {false};
+		knownValues.valueProperty().addListener((observable, oldValue, selectedValue) -> {
+			if (updatingItems[0] || selectedValue == null || !allKnownValues.contains(selectedValue)) {
+				return;
+			}
+			String text = knownValues.getEditor().getText();
+			int comma = text.lastIndexOf(',');
+			if (comma < 0) {
+				return;
+			}
+			String completed = text.substring(0, comma + 1) + selectedValue;
+			Platform.runLater(() -> {
+				if (!Objects.equals(knownValues.getEditor().getText(), selectedValue)) {
+					return;
+				}
+				updatingItems[0] = true;
+				try {
+					knownValues.getItems().setAll(allKnownValues);
+					knownValues.getEditor().setText(completed);
+					knownValues.getEditor().positionCaret(completed.length());
+				} finally {
+					updatingItems[0] = false;
+				}
+				knownValues.hide();
+			});
+		});
 		knownValues.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
 			if (updatingItems[0]) {
 				return;
@@ -81,11 +125,14 @@ public class TextFilterBox extends FilterBox {
 						|| Objects.equals(newValue, knownValues.getSelectionModel().getSelectedItem())) {
 					return;
 				}
-				String prefix = newValue == null ? "" : newValue.toLowerCase(Locale.ROOT);
+				String prefix = newValue == null ? "" : newValue.substring(newValue.lastIndexOf(',') + 1).trim().toLowerCase(Locale.ROOT);
 				int anchor = knownValues.getEditor().getAnchor();
 				int caret = knownValues.getEditor().getCaretPosition();
 				updatingItems[0] = true;
 				try {
+					if (!knownValues.getSelectionModel().isEmpty()) {
+						knownValues.getSelectionModel().clearSelection();
+					}
 					knownValues.getItems().setAll(allKnownValues.stream()
 							.filter(value -> matchesPrefix(value, prefix))
 							.toList());
@@ -94,7 +141,9 @@ public class TextFilterBox extends FilterBox {
 				} finally {
 					updatingItems[0] = false;
 				}
-				if (knownValues.getEditor().isFocused() && !prefix.isEmpty()) {
+				if (knownValues.getItems().isEmpty()) {
+					knownValues.hide();
+				} else if (knownValues.getEditor().isFocused() && newValue != null && !newValue.isEmpty()) {
 					knownValues.show();
 				}
 			});
