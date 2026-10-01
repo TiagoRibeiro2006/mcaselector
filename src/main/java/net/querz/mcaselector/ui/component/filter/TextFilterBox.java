@@ -8,20 +8,8 @@ import javafx.scene.control.TextInputControl;
 import net.querz.mcaselector.filter.Comparator;
 import net.querz.mcaselector.filter.Filter;
 import net.querz.mcaselector.filter.TextFilter;
-import net.querz.mcaselector.filter.filters.BiomeFilter;
-import net.querz.mcaselector.filter.filters.CompressionFilter;
-import net.querz.mcaselector.filter.filters.EntityFilter;
-import net.querz.mcaselector.filter.filters.PaletteFilter;
-import net.querz.mcaselector.filter.filters.StatusFilter;
-import net.querz.mcaselector.filter.filters.StructureFilter;
 import net.querz.mcaselector.text.Translation;
 import net.querz.mcaselector.ui.UIFactory;
-import net.querz.mcaselector.io.mca.CompressionType;
-import net.querz.mcaselector.version.mapping.registry.StructureRegistry;
-import net.querz.mcaselector.version.mapping.registry.BiomeRegistry;
-import net.querz.mcaselector.version.mapping.registry.EntityRegistry;
-import net.querz.mcaselector.version.mapping.registry.BlockRegistry;
-import net.querz.mcaselector.version.mapping.registry.StatusRegistry;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -71,24 +59,12 @@ public class TextFilterBox extends FilterBox {
 	}
 
 	private ComboBox<String> createKnownValuePicker(TextFilter<?> filter) {
-		ComboBox<String> knownValues = new ComboBox<>();
-		if (filter instanceof BiomeFilter) {
-			knownValues.getItems().addAll(BiomeRegistry.getKnownNames());
-		} else if (filter instanceof CompressionFilter) {
-			for (CompressionType compressionType : CompressionType.values()) {
-				knownValues.getItems().add(compressionType.toString());
-			}
-		} else if (filter instanceof EntityFilter) {
-			knownValues.getItems().addAll(EntityRegistry.getKnownNames());
-		} else if (filter instanceof PaletteFilter) {
-			knownValues.getItems().addAll(BlockRegistry.getKnownNames());
-		} else if (filter instanceof StatusFilter) {
-			knownValues.getItems().addAll(StatusRegistry.getKnownNames());
-		} else if (filter instanceof StructureFilter) {
-			StructureRegistry.forEachDisplayName((displayName, structure) -> knownValues.getItems().add(structure.id()));
-		} else {
+		List<String> values = filter.getKnownValues();
+		if (values == null) {
 			return null;
 		}
+		ComboBox<String> knownValues = new ComboBox<>();
+		knownValues.getItems().addAll(values);
 
 		knownValues.setEditable(true);
 		knownValues.setMaxWidth(Double.MAX_VALUE);
