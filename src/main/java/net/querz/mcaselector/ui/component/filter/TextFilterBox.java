@@ -68,7 +68,7 @@ public class TextFilterBox extends FilterBox {
 		if (values == null) {
 			return null;
 		}
-		ComboBox<String> knownValues = new ComboBox<>();
+		ComboBox<String> knownValues = new FilterValuePicker();
 		knownValues.getItems().addAll(values);
 
 		knownValues.setEditable(true);
