@@ -114,6 +114,11 @@ class FilterValuePicker extends ComboBox<String> {
 			return true;
 		}
 		if (suggestionIndex >= 0 && event.getCode() == KeyCode.ENTER) {
+			if (event.getEventType() == KeyEvent.KEY_RELEASED) {
+				suggestions.getSelectionModel().select(suggestionIndex);
+				hide();
+				requestFocus();
+			}
 			return true;
 		}
 		if (!isTab(event)) {

@@ -93,6 +93,11 @@ public class TextFilterBox extends FilterBox {
 			String text = knownValues.getEditor().getText();
 			int comma = text.lastIndexOf(',');
 			if (comma < 0) {
+				Platform.runLater(() -> {
+					if (Objects.equals(knownValues.getEditor().getText(), selectedValue)) {
+						knownValues.getEditor().positionCaret(selectedValue.length());
+					}
+				});
 				return;
 			}
 			String completed = text.substring(0, comma + 1) + selectedValue;
